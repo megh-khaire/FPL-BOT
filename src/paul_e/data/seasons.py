@@ -74,31 +74,28 @@ def perform_season_specific_modifications(dataset, year):
         return dataset
 
 
-def clean_initial_data(dataset, points_val=38, min_val=525):
+def gen_season_dataset(year):
     '''
-    Groups dataset by id and removes players with total_points less than points_val
-    and total minutes less than min_val. Removes entries where players have been
-    rested for the match.
+    Compiles GW data for the given year and returns a dataframe
 
     Args:
-        dataset (pd.Dataframe): compiled data for a single season
-        points_val (int): Minimum required season points
-        min_val (int): Minimum required season playtime (in minutes)
+        year (str): Year for which season data is to be extracted
 
     Returns:
-      pd.Dataframe: cleaned dataframe
+        pd.Dataframe: compiled dataframe containing seasons data
     '''
-    aggregated_dataset = dataset.groupby(['element'])[['total_points', 'minutes']].sum()
-    # Create a list of all players with total points less than required
-    points_deficit = aggregated_dataset.query(f"total_points < {points_val}").index.values.tolist()
-    # Create a list of all players with total minutes less than required
-    minutes_deficit = aggregated_dataset.query(f"minutes < {min_val}").index.values.tolist()
-    # Remove deficit players from dataframe
-    deficit_elements = list(set(points_deficit + minutes_deficit))
-    print("Total players removed: ", len(deficit_elements))
-    dataset = dataset[~(dataset['element'].isin(deficit_elements))]
-    # Remove all entries where players have been rested for the GW
-    dataset.reset_index(drop=True, inplace=True)
+    print("Gathering initial stats for season: " + year)
+    dataset = pd.DataFrame()
+    for i in range(1, 39):
+        if year == '2019-20' and i > 29:
+            initial_dataset_link = f"{pcd.RAW_DATASET_LINK}/{year}/gws/gw{i+9}.csv"
+        else:
+            initial_dataset_link = f"{pcd.RAW_DATASET_LINK}/{year}/gws/gw{i}.csv"
+        gw_data = pdu.get_file_data(initial_dataset_link, drop_columns=pcd.GENERATED_DATA_COLUMNS)
+        gw_data.insert(len(gw_data.columns) - 1, "year", year)
+        dataset = dataset.append(gw_data)
+    dataset = perform_season_specific_modifications(dataset, year)
+    dataset = set_player_specific_features(dataset, year)
     return dataset
 
 
@@ -108,24 +105,9 @@ def gen_initial_dataset(years):
     compiled from each gameweek
 
     Args:
-      years (list): Seasons for which raw data is to be extracted
+        years (list): Seasons for which raw data is to be extracted
     '''
     for year in years:
-        print("Gathering stats for season: " + year)
-        seasons_dataset_file = f'{pcd.INITIAL_DATASET_LINK}/{year}_season_stats.csv'
-        dataset = pd.DataFrame()
-        for i in range(1, 39):
-            if year == '2019-20' and i > 29:
-                initial_dataset_link = f"{pcd.RAW_DATASET_LINK}/{year}/gws/gw{i+9}.csv"
-            else:
-                initial_dataset_link = f"{pcd.RAW_DATASET_LINK}/{year}/gws/gw{i}.csv"
-            gw_data = pdu.get_file_data(initial_dataset_link, drop_columns=pcd.GENERATED_DATA_COLUMNS)
-            gw_data.insert(len(gw_data.columns) - 1, "year", year)
-            dataset = dataset.append(gw_data)
-        dataset = perform_season_specific_modifications(dataset, year)
-        dataset = clean_initial_data(dataset)
-        dataset = set_player_specific_features(dataset, year)
-        dataset.to_csv(seasons_dataset_file, mode='w', header=True)
-
-
-gen_initial_dataset(pcd.YEARS)
+        season_dataset_file = f'{pcd.INITIAL_DATASET_LINK}/{year}_season_stats.csv'
+        season_dataset = gen_season_dataset(year)
+        season_dataset.to_csv(season_dataset_file, mode='w', header=True)

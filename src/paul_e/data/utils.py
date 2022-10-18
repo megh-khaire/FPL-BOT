@@ -2,7 +2,7 @@ import pandas as pd
 
 
 def get_file_data(filename, drop_columns=[], columns=[]):
-    """
+    '''
     Returns the content of the given file.
 
     Args:
@@ -12,7 +12,7 @@ def get_file_data(filename, drop_columns=[], columns=[]):
 
     Returns:
         pd.Dataframe: contents loaded from the file
-    """
+    '''
     if columns:
         return pd.read_csv(filename, usecols=columns, encoding="latin1")
     else:
@@ -20,7 +20,7 @@ def get_file_data(filename, drop_columns=[], columns=[]):
 
 
 def fetch_team_mapping(year):
-    """
+    '''
     Returns a mapping between team code and name for all
     teams in the given year.
 
@@ -29,7 +29,7 @@ def fetch_team_mapping(year):
 
     Returns:
         dict: maps team code with team name
-    """
+    '''
     team_cols = ["id", "name"]
     team_data_filename = f"resources/teams/{year}_teams.csv"
     team_data = get_file_data(team_data_filename, columns=team_cols)
