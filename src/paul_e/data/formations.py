@@ -15,8 +15,8 @@ def get_total_points_for_position(position, n_players, gw_data):
     Returns:
         int: total points scored by players in the given position during the GW
     '''
-    top_n_players = gw_data[gw_data["position"] == position].nlargest(n_players, 'total_points')
-    return top_n_players["total_points"].sum()
+    top_n_players = gw_data[gw_data['position'] == position].nlargest(n_players, 'total_points')
+    return top_n_players['total_points'].sum()
 
 
 def get_points_for_all_formations(gw_data):
@@ -32,11 +32,11 @@ def get_points_for_all_formations(gw_data):
     gw_points = []
     for formation in POSSIBLE_FORMATIONS:
         formation_points = {}
-        formation_points["name"] = formation["NAME"]
-        formation_points["forwards"] = get_total_points_for_position("FWD", formation["FWD"], gw_data)
-        formation_points["midfielders"] = get_total_points_for_position("MID", formation["MID"], gw_data)
-        formation_points["defenders"] = get_total_points_for_position("DEF", formation["DEF"], gw_data)
-        formation_points["total_points"] = formation_points["forwards"] + formation_points["midfielders"] + formation_points["defenders"]
+        formation_points['name'] = formation['NAME']
+        formation_points['forwards'] = get_total_points_for_position('FWD', formation['FWD'], gw_data)
+        formation_points['midfielders'] = get_total_points_for_position('MID', formation['MID'], gw_data)
+        formation_points['defenders'] = get_total_points_for_position('DEF', formation['DEF'], gw_data)
+        formation_points['total_points'] = formation_points['forwards'] + formation_points['midfielders'] + formation_points['defenders']
         gw_points.append(formation_points)
     return gw_points
 
@@ -51,14 +51,14 @@ def get_all_formation_points_for_season(year):
     Returns:
         pd.Dataframe: total scores for all possible formations in the given season.
     '''
-    print("Gathering formation stats for season: " + year)
+    print('Gathering formation stats for season: ' + year)
     season_points = pd.DataFrame()
     season_data = gen_season_dataset(year)
     for i in range(1, 39):
-        gw_data = season_data[season_data["round"] == i][['element', 'name', 'position', 'total_points']]
+        gw_data = season_data[season_data['round'] == i][['element', 'name', 'position', 'total_points']]
         gw_data = gw_data.sort_values(['position', 'total_points'], ascending=False).groupby('position').head(5)
         gw_points = pd.DataFrame(get_points_for_all_formations(gw_data))
-        gw_points.insert(len(gw_points.columns) - 1, "round", i)
+        gw_points.insert(len(gw_points.columns) - 1, 'round', i)
         season_points = season_points.append(gw_points)
     return season_points
 
@@ -74,6 +74,6 @@ def gen_formations_data(years):
     formations_dataset = pd.DataFrame()
     for year in years:
         season_points = get_all_formation_points_for_season(year)
-        season_points.insert(len(season_points.columns) - 1, "year", year)
+        season_points.insert(len(season_points.columns) - 1, 'year', year)
         formations_dataset = formations_dataset.append(season_points)
     formations_dataset.to_csv(FORMATIONS_DATASET_LINK, mode='w', header=True)

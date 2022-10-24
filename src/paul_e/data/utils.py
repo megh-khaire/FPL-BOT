@@ -14,15 +14,15 @@ def get_file_data(filename, drop_columns=[], columns=[]):
         pd.Dataframe: contents loaded from the file
     '''
     if columns:
-        return pd.read_csv(filename, usecols=columns, encoding="latin1")
+        return pd.read_csv(filename, usecols=columns, encoding='latin1')
     else:
-        return pd.read_csv(filename, usecols=lambda x: x not in drop_columns, encoding="latin1")
+        return pd.read_csv(filename, usecols=lambda x: x not in drop_columns, encoding='latin1')
 
 
 def fetch_team_mapping(year):
     '''
-    Returns a mapping between team code and name for all
-    teams in the given year.
+    Returns a mapping between team code and name, and team code
+    and fixture difficulty for all teams in the given year.
 
     Args:
         year (str): year (season) for which the mapping is required
@@ -30,10 +30,8 @@ def fetch_team_mapping(year):
     Returns:
         dict: maps team code with team name
     '''
-    team_cols = ["id", "name"]
-    team_data_filename = f"resources/teams/{year}_teams.csv"
+    team_cols = ['id', 'name', 'difficulty']
+    team_data_filename = f'resources/teams/{year}_teams.csv'
     team_data = get_file_data(team_data_filename, columns=team_cols)
-    # Creating a dictionary of loaded data
-    team_data = team_data.set_index("id").to_dict("dict")
-    # Creating a team name dict
-    return team_data["name"]
+    team_data = team_data.set_index('id').to_dict('dict')
+    return team_data

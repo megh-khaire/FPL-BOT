@@ -15,23 +15,23 @@ def set_player_specific_features(dataset, year):
     Returns:
         pd.Dataframe: modified dataframe containing player specific features
     '''
+    # Fetch player data and convert it to a dictionary
     player_features = ['id', 'team', 'element_type']
     player_data_file = f'{pcd.RAW_DATASET_LINK}/{year}/players_raw.csv'
     player_data = pdu.get_file_data(player_data_file, columns=player_features)
-    # Convert team code to name
-    team_codes_to_name = pdu.fetch_team_mapping(year)
-    player_data['team'] = player_data["team"].map(team_codes_to_name)
-    # Create a dictionary of player data
     player_data = player_data.set_index('id').to_dict('dict')
-    # Extract team dictionary
+    # Fetch mapping of team codes to names and create a
+    # mapping between player id and team name
+    team_codes_to_name = pdu.fetch_team_mapping(year)['name']
+    player_data['team'] = player_data['team'].map(team_codes_to_name)
     team_dict = player_data['team']
-    # Insert team column
-    dataset.insert(len(dataset.columns) - 1, "team", np.nan)
+    # Insert a new team column
+    dataset.insert(len(dataset.columns) - 1, 'team', np.nan)
     dataset['team'] = dataset['element'].map(team_dict)
-    # Extract position dictionary
+    # Extract mapping between player id and position
     position_dict = player_data['element_type']
-    # Insert position column
-    dataset.insert(len(dataset.columns) - 1, "position", np.nan)
+    # Insert a position column
+    dataset.insert(len(dataset.columns) - 1, 'position', np.nan)
     dataset['position'] = dataset['element'].map(position_dict)
     dataset['position'] = dataset['position'].map(pcd.POSITIONS)
     # Drop null entries
@@ -50,7 +50,7 @@ def remove_2019_20_irregularities(dataset):
     Returns:
         pd.Dataframe: modified dataframe without irregularities
     '''
-    print("Removing irregularities from season 2019-20")
+    print('Removing irregularities from season 2019-20')
     dataset['round'] = dataset['round'].apply(lambda x: x - 9 if x > 29 else x)
     return dataset
 
@@ -84,15 +84,15 @@ def gen_season_dataset(year):
     Returns:
         pd.Dataframe: compiled dataframe containing seasons data
     '''
-    print("Gathering initial stats for season: " + year)
+    print('Gathering initial stats for season: ' + year)
     dataset = pd.DataFrame()
     for i in range(1, 39):
         if year == '2019-20' and i > 29:
-            initial_dataset_link = f"{pcd.RAW_DATASET_LINK}/{year}/gws/gw{i+9}.csv"
+            initial_dataset_link = f'{pcd.RAW_DATASET_LINK}/{year}/gws/gw{i+9}.csv'
         else:
-            initial_dataset_link = f"{pcd.RAW_DATASET_LINK}/{year}/gws/gw{i}.csv"
+            initial_dataset_link = f'{pcd.RAW_DATASET_LINK}/{year}/gws/gw{i}.csv'
         gw_data = pdu.get_file_data(initial_dataset_link, drop_columns=pcd.GENERATED_DATA_COLUMNS)
-        gw_data.insert(len(gw_data.columns) - 1, "year", year)
+        gw_data.insert(len(gw_data.columns) - 1, 'year', year)
         dataset = dataset.append(gw_data)
     dataset = perform_season_specific_modifications(dataset, year)
     dataset = set_player_specific_features(dataset, year)
