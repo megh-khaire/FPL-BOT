@@ -23,11 +23,11 @@ def set_player_specific_features(dataset, year):
     # Fetch mapping of team codes to names and create a
     # mapping between player id and team name
     team_codes_to_name = pdu.fetch_team_mapping(year)['name']
-    player_data['team'] = player_data['team'].map(team_codes_to_name)
     team_dict = player_data['team']
     # Insert a new team column
     dataset.insert(len(dataset.columns) - 1, 'team', np.nan)
     dataset['team'] = dataset['element'].map(team_dict)
+    dataset['team'] = dataset['team'].map(team_codes_to_name)
     # Extract mapping between player id and position
     position_dict = player_data['element_type']
     # Insert a position column
