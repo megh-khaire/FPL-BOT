@@ -91,7 +91,7 @@ def gen_season_dataset(year):
             initial_dataset_link = f'{pcd.RAW_DATASET_LINK}/{year}/gws/gw{i+9}.csv'
         else:
             initial_dataset_link = f'{pcd.RAW_DATASET_LINK}/{year}/gws/gw{i}.csv'
-        gw_data = pdu.get_file_data(initial_dataset_link, drop_columns=pcd.GENERATED_DATA_COLUMNS)
+        gw_data = pdu.get_file_data(initial_dataset_link, columns=pcd.INIT_DATA_COLUMNS)
         gw_data.insert(len(gw_data.columns) - 1, 'year', year)
         dataset = dataset.append(gw_data)
     dataset = perform_season_specific_modifications(dataset, year)
